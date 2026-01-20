@@ -1,13 +1,12 @@
 from fastapi import FastAPI, HTTPException, Request
 from fastapi.responses import JSONResponse
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, model_validator
+from typing import Optional
 from datetime import date
 from dateutil.relativedelta import relativedelta
 from slowapi import Limiter
 from slowapi.util import get_remote_address
 from slowapi.errors import RateLimitExceeded
-from typing import Optional
-from pydantic import root_validator
 
 # ------------------------
 # APP INITIALIZATION
@@ -167,9 +166,7 @@ RULES = {
     }
 }
 
-# ------------------------
-# DEFAULT RULES FOR ANY OTHER REGION
-# ------------------------
+# Default rules for any other region
 DEFAULT_RULES = {
     "free_chat": 13,
     "user_generated_content": 13,
@@ -181,6 +178,7 @@ DEFAULT_RULES = {
     "personalized_ads": 13
 }
 
+# Age bands
 AGE_BANDS = [
     (0, 4, "0-4"),
     (5, 7, "5-7"),
@@ -191,20 +189,19 @@ AGE_BANDS = [
 # ------------------------
 # Pydantic Models
 # ------------------------
-
 class AgeGateRequest(BaseModel):
     child_dob: Optional[date] = Field(None, description="Child's date of birth in YYYY-MM-DD format", example="2018-06-12")
     age: Optional[int] = Field(None, description="Child's age in years", example=7)
     region: str = Field(..., description="Country code, e.g., US", example="US")
     feature: str = Field(..., description="Feature you want to check access for", example="free_chat")
 
-    @root_validator
+    @model_validator(mode="before")
     def check_dob_or_age(cls, values):
-        dob, age = values.get("child_dob"), values.get("age")
+        dob = values.get("child_dob")
+        age = values.get("age")
         if not dob and age is None:
             raise ValueError("Either 'child_dob' or 'age' must be provided.")
         return values
-
 
 class AgeGateResponse(BaseModel):
     allowed: bool
@@ -212,7 +209,7 @@ class AgeGateResponse(BaseModel):
     reason: str
     age: int
     age_band: str
-    next_eligible_date: str | None
+    next_eligible_date: Optional[str]
     disclaimer: str
 
 # ------------------------
@@ -232,32 +229,33 @@ def get_age_band(age: int) -> str:
 # ------------------------
 @app.get("/health")
 def health_check():
-    """
-    Simple health check endpoint.
-    """
     return {"status": "ok"}
 
 @app.post("/age-gate/check", response_model=AgeGateResponse)
-@limiter.limit("10/minute")  # Limit 10 requests per minute per IP
+@limiter.limit("10/minute")
 def age_gate_check(payload: AgeGateRequest, request: Request):
-    """
-    Determines if a feature is allowed for a child based on age and region.
-    """
-    # Determine age
+    # Determine age and DOB
     if payload.child_dob:
         age = calculate_age(payload.child_dob)
         dob = payload.child_dob
     else:
         age = payload.age
-        # Approximate DOB from age
         today = date.today()
         dob = date(today.year - age, today.month, today.day)
 
-    age_band = get_age_band(age)
+    # Optional: verify consistency if both provided
+    if payload.child_dob and payload.age is not None:
+        calculated_age = calculate_age(payload.child_dob)
+        if payload.age != calculated_age:
+            raise HTTPException(
+                status_code=400,
+                detail=f"Provided age {payload.age} does not match date of birth (calculated age {calculated_age})"
+            )
+
     region = payload.region
     feature = payload.feature
 
-    # Validate region (fall back to default rules if region not listed)
+    # Get region rules (default if region not listed)
     region_rules = RULES.get(region, DEFAULT_RULES)
 
     # Validate feature
@@ -278,11 +276,10 @@ def age_gate_check(payload: AgeGateRequest, request: Request):
             f"{feature} is allowed for this age group"
         ),
         age=age,
-        age_band=age_band,
+        age_band=get_age_band(age),
         next_eligible_date=(dob.replace(year=dob.year + min_age).isoformat()
                             if not allowed else None),
         disclaimer="This response provides general guidance only and does not constitute legal advice."
     )
 
     return response
-
