@@ -58,7 +58,7 @@ AGE_BANDS = [
 class AgeGateRequest(BaseModel):
     child_dob: date = Field(..., description="Child's date of birth in YYYY-MM-DD format", example="2018-06-12")
     region: str = Field(..., description="Country code, e.g., US", example="US")
-    feature: str = Field(..., description="Feature you want to check access for", example="free_chat")
+    feature: str = Field(..., description="Feature you want to check access for", example="free_chatfree_chat, user_generated_content, location_sharing, voice_recording, image_upload, ai_chat, push_notifications, personalized_ads")
 
 class AgeGateResponse(BaseModel):
     allowed: bool

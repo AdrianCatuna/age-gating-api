@@ -1,6 +1,18 @@
 # Age Gating API
 
-A lightweight, developer-friendly API that helps applications determine whether a user meets minimum age requirements for restricted content, features, or parental controls.
+A lightweight, developer-friendly API that helps applications determine whether a user meets minimum age requirements for specific features based on region.
+
+Available features: 
+- free_chat
+- user_generated_content
+- location_sharing
+- voice_recording
+- image_upload
+- ai_chat
+- push_notifications, personalized_ads
+
+Available regions:
+- US
 
 Designed for apps and services targeting families, children, and compliance-sensitive platforms.
 
@@ -10,9 +22,8 @@ Designed for apps and services targeting families, children, and compliance-sens
 - Simple age eligibility checks
 - Works for COPPA, app feature gating, and content restrictions
 - Developer-friendly JSON requests and responses
-- Built with FastAPI (high performance, auto-generated docs)
+- Built with FastAPI (high performance)
 - Rate-limited for fair usage
-- Ready for RapidAPI monetization
 
 
 ## Base URL
@@ -37,55 +48,71 @@ Content-Type: application/json
 
 Field | Type | Required | Description
 ----- | ---- | -------- | -----------
-age | int | Yes | User’s age
-minimum_age | int | Yes | Required minimum age
+child_dob| string | Yes | Child’s date of birth in YYYY-MM-DD format
+region | string | Yes | ISO country code representing the child’s region (example: US)
+feature | string | Yes | Feature to check eligibility for (options: free_chat, user_generated_content, location_sharing, voice_recording, image_upload, ai_chat, push_notifications, personalized_ads)
 
 ### Example Request
 
 ```json
 {
-  "age": 10,
-  "minimum_age": 13
+  "child_dob": "2018-06-12",
+  "region": "US",
+  "feature": "free_chat"
 }
 ```
 
 
-## Response
+## Successful Responses
 
 ### Success Response (200)
 
-```json
-{
-  "allowed": false,
-  "age": 10,
-  "minimum_age": 13,
-  "reason": "User does not meet the minimum age requirement."
-}
-```
-
-### Allowed Example
+### Allowed = True Example
 
 ```json
 {
   "allowed": true,
-  "age": 16,
-  "minimum_age": 13,
-  "reason": "User meets the minimum age requirement."
+  "reason_code": "ALLOWED",
+  "reason": "free_chat is allowed for this age group",
+  "age": 15,
+  "age_band": "13+",
+  "next_eligible_date": null,
+  "disclaimer": "This response provides general guidance only and does not constitute legal advice."
+}
+```
+### Allowed = False Example
+
+```json
+{
+  "allowed": false,
+  "reason_code": "AGE_RESTRICTED",
+  "reason": "free_chat is restricted for children under 13 in US",
+  "age": 7,
+  "age_band": "5-7",
+  "next_eligible_date": "2031-06-12",
+  "disclaimer": "This response provides general guidance only and does not constitute legal advice."
 }
 ```
 
 
 ## Error Responses
 
-### Validation Error (422)
+### Validation Error Example (422)
 
 ```json
 {
   "detail": [
     {
-      "loc": ["body", "age"],
-      "msg": "field required",
-      "type": "value_error.missing"
+      "type": "date_from_datetime_parsing",
+      "loc": [
+        "body",
+        "child_dob"
+      ],
+      "msg": "Input should be a valid date or datetime, invalid datetime separator, expected `T`, `t`, `_` or space",
+      "input": "2010-06-182",
+      "ctx": {
+        "error": "invalid datetime separator, expected `T`, `t`, `_` or space"
+      }
     }
   ]
 }
@@ -105,9 +132,14 @@ minimum_age | int | Yes | Required minimum age
 ### cURL
 
 ```bash
-curl -X POST https://age-gating-api.onrender.com/age-gate/check \
-  -H "Content-Type: application/json" \
-  -d '{"age":12,"minimum_age":13}'
+curl -X POST "https://age-gating-api.onrender.com/age-gate/check" \
+-H "Content-Type: application/json" \
+-H "x-api-key: YOUR_RAPIDAPI_KEY" \
+-d '{
+  "child_dob": "2018-06-12",
+  "region": "US",
+  "feature": "free_chat"
+}'
 ```
 
 ### JavaScript (Fetch)
@@ -116,15 +148,18 @@ curl -X POST https://age-gating-api.onrender.com/age-gate/check \
 fetch("https://age-gating-api.onrender.com/age-gate/check", {
   method: "POST",
   headers: {
-    "Content-Type": "application/json"
+    "Content-Type": "application/json",
+    "x-api-key": "YOUR_RAPIDAPI_KEY"
   },
   body: JSON.stringify({
-    age: 12,
-    minimum_age: 13
+    child_dob: "2018-06-12",
+    region: "US",
+    feature: "free_chat"
   })
 })
-.then(res => res.json())
-.then(data => console.log(data));
+.then(response => response.json())
+.then(data => console.log(data))
+.catch(error => console.error('Error:', error));
 ```
 
 ### Python
@@ -133,13 +168,22 @@ fetch("https://age-gating-api.onrender.com/age-gate/check", {
 import requests
 
 url = "https://age-gating-api.onrender.com/age-gate/check"
-payload = {
-    "age": 12,
-    "minimum_age": 13
+
+headers = {
+    "Content-Type": "application/json",
+    "x-api-key": "YOUR_RAPIDAPI_KEY"
 }
 
-response = requests.post(url, json=payload)
+payload = {
+    "child_dob": "2018-06-12",
+    "region": "US",
+    "feature": "free_chat"
+}
+
+response = requests.post(url, json=payload, headers=headers)
+
 print(response.json())
+
 ```
 
 
@@ -147,7 +191,7 @@ print(response.json())
 
 Plan | Limit 
 ----- | ----
-Free | 30 requests per minute
+Free | 10 requests per minute (200 max per month)
 Paid (RapidAPI) | Higher limits available
 
 
