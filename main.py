@@ -6,6 +6,8 @@ from dateutil.relativedelta import relativedelta
 from slowapi import Limiter
 from slowapi.util import get_remote_address
 from slowapi.errors import RateLimitExceeded
+from typing import Optional
+from pydantic import root_validator
 
 # ------------------------
 # APP INITIALIZATION
@@ -42,7 +44,141 @@ RULES = {
         "ai_chat": 13,
         "push_notifications": 5,
         "personalized_ads": 13
+    },
+    "CA": {  # Canada
+        "free_chat": 13,
+        "user_generated_content": 13,
+        "location_sharing": 13,
+        "voice_recording": 8,
+        "image_upload": 8,
+        "ai_chat": 13,
+        "push_notifications": 5,
+        "personalized_ads": 13
+    },
+    "GB": {  # United Kingdom
+        "free_chat": 13,
+        "user_generated_content": 13,
+        "location_sharing": 13,
+        "voice_recording": 8,
+        "image_upload": 8,
+        "ai_chat": 13,
+        "push_notifications": 5,
+        "personalized_ads": 13
+    },
+    "AU": {  # Australia
+        "free_chat": 13,
+        "user_generated_content": 13,
+        "location_sharing": 13,
+        "voice_recording": 8,
+        "image_upload": 8,
+        "ai_chat": 13,
+        "push_notifications": 5,
+        "personalized_ads": 13
+    },
+    "DE": {  # Germany
+        "free_chat": 13,
+        "user_generated_content": 13,
+        "location_sharing": 13,
+        "voice_recording": 8,
+        "image_upload": 8,
+        "ai_chat": 13,
+        "push_notifications": 5,
+        "personalized_ads": 13
+    },
+    "FR": {  # France
+        "free_chat": 13,
+        "user_generated_content": 13,
+        "location_sharing": 13,
+        "voice_recording": 8,
+        "image_upload": 8,
+        "ai_chat": 13,
+        "push_notifications": 5,
+        "personalized_ads": 13
+    },
+    "JP": {  # Japan
+        "free_chat": 13,
+        "user_generated_content": 13,
+        "location_sharing": 13,
+        "voice_recording": 8,
+        "image_upload": 8,
+        "ai_chat": 13,
+        "push_notifications": 5,
+        "personalized_ads": 13
+    },
+    "IN": {  # India
+        "free_chat": 13,
+        "user_generated_content": 13,
+        "location_sharing": 13,
+        "voice_recording": 8,
+        "image_upload": 8,
+        "ai_chat": 13,
+        "push_notifications": 5,
+        "personalized_ads": 13
+    },
+    "BR": {  # Brazil
+        "free_chat": 13,
+        "user_generated_content": 13,
+        "location_sharing": 13,
+        "voice_recording": 8,
+        "image_upload": 8,
+        "ai_chat": 13,
+        "push_notifications": 5,
+        "personalized_ads": 13
+    },
+    "MX": {  # Mexico
+        "free_chat": 13,
+        "user_generated_content": 13,
+        "location_sharing": 13,
+        "voice_recording": 8,
+        "image_upload": 8,
+        "ai_chat": 13,
+        "push_notifications": 5,
+        "personalized_ads": 13
+    },
+    "CN": {  # China
+        "free_chat": 13,
+        "user_generated_content": 13,
+        "location_sharing": 13,
+        "voice_recording": 8,
+        "image_upload": 8,
+        "ai_chat": 13,
+        "push_notifications": 5,
+        "personalized_ads": 13
+    },
+    "KR": {  # South Korea
+        "free_chat": 13,
+        "user_generated_content": 13,
+        "location_sharing": 13,
+        "voice_recording": 8,
+        "image_upload": 8,
+        "ai_chat": 13,
+        "push_notifications": 5,
+        "personalized_ads": 13
+    },
+    "ZA": {  # South Africa
+        "free_chat": 13,
+        "user_generated_content": 13,
+        "location_sharing": 13,
+        "voice_recording": 8,
+        "image_upload": 8,
+        "ai_chat": 13,
+        "push_notifications": 5,
+        "personalized_ads": 13
     }
+}
+
+# ------------------------
+# DEFAULT RULES FOR ANY OTHER REGION
+# ------------------------
+DEFAULT_RULES = {
+    "free_chat": 13,
+    "user_generated_content": 13,
+    "location_sharing": 13,
+    "voice_recording": 8,
+    "image_upload": 8,
+    "ai_chat": 13,
+    "push_notifications": 5,
+    "personalized_ads": 13
 }
 
 AGE_BANDS = [
@@ -55,10 +191,20 @@ AGE_BANDS = [
 # ------------------------
 # Pydantic Models
 # ------------------------
+
 class AgeGateRequest(BaseModel):
-    child_dob: date = Field(..., description="Child's date of birth in YYYY-MM-DD format", example="2018-06-12")
+    child_dob: Optional[date] = Field(None, description="Child's date of birth in YYYY-MM-DD format", example="2018-06-12")
+    age: Optional[int] = Field(None, description="Child's age in years", example=7)
     region: str = Field(..., description="Country code, e.g., US", example="US")
     feature: str = Field(..., description="Feature you want to check access for", example="free_chat")
+
+    @root_validator
+    def check_dob_or_age(cls, values):
+        dob, age = values.get("child_dob"), values.get("age")
+        if not dob and age is None:
+            raise ValueError("Either 'child_dob' or 'age' must be provided.")
+        return values
+
 
 class AgeGateResponse(BaseModel):
     allowed: bool
@@ -97,18 +243,22 @@ def age_gate_check(payload: AgeGateRequest, request: Request):
     """
     Determines if a feature is allowed for a child based on age and region.
     """
-    dob = payload.child_dob
+    # Determine age
+    if payload.child_dob:
+        age = calculate_age(payload.child_dob)
+        dob = payload.child_dob
+    else:
+        age = payload.age
+        # Approximate DOB from age
+        today = date.today()
+        dob = date(today.year - age, today.month, today.day)
+
+    age_band = get_age_band(age)
     region = payload.region
     feature = payload.feature
 
-    # Calculate age and band
-    age = calculate_age(dob)
-    age_band = get_age_band(age)
-
-    # Validate region
-    region_rules = RULES.get(region)
-    if not region_rules:
-        raise HTTPException(status_code=400, detail="Unsupported region")
+    # Validate region (fall back to default rules if region not listed)
+    region_rules = RULES.get(region, DEFAULT_RULES)
 
     # Validate feature
     min_age = region_rules.get(feature)
@@ -135,3 +285,4 @@ def age_gate_check(payload: AgeGateRequest, request: Request):
     )
 
     return response
+

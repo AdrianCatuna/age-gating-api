@@ -12,7 +12,19 @@ Available features:
 - push_notifications, personalized_ads
 
 Available regions:
-- US
+- US (United States)
+- CA (Canada)
+- GB (United Kingdom)
+- AU (Australia)
+- DE (Germany)
+- FR (France)
+- JP (Japan)
+- IN (India)
+- BR (Brazil)
+- MX (Mexico)
+- CN (China)
+- KR (South Korea)
+- ZA (South Africa)
 
 Designed for apps and services targeting families, children, and compliance-sensitive platforms.
 
@@ -48,7 +60,8 @@ Content-Type: application/json
 
 Field | Type | Required | Description
 ----- | ---- | -------- | -----------
-child_dob| string | Yes | Child’s date of birth in YYYY-MM-DD format
+child_dob| string | No | Child’s date of birth in YYYY-MM-DD format (dob or age must be provided)
+age | int | No | Child's age (dob or age must be provided)
 region | string | Yes | ISO country code representing the child’s region (example: US)
 feature | string | Yes | Feature to check eligibility for (options: free_chat, user_generated_content, location_sharing, voice_recording, image_upload, ai_chat, push_notifications, personalized_ads)
 
@@ -57,6 +70,7 @@ feature | string | Yes | Feature to check eligibility for (options: free_chat, u
 ```json
 {
   "child_dob": "2018-06-12",
+  "age": 7,
   "region": "US",
   "feature": "free_chat"
 }
