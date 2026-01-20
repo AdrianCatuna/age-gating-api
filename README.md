@@ -4,7 +4,6 @@ A lightweight, developer-friendly API that helps applications determine whether 
 
 Designed for apps and services targeting families, children, and compliance-sensitive platforms.
 
----
 
 ## Features
 
@@ -15,13 +14,11 @@ Designed for apps and services targeting families, children, and compliance-sens
 - Rate-limited for fair usage
 - Ready for RapidAPI monetization
 
----
 
 ## Base URL
 
 https://age-gating-api.onrender.com
 
----
 
 ## Endpoint Overview
 
@@ -29,7 +26,6 @@ https://age-gating-api.onrender.com
 
 Determines whether a user meets a minimum age requirement.
 
----
 
 ## Request
 
@@ -53,7 +49,6 @@ minimum_age | int | Yes | Required minimum age
 }
 ```
 
----
 
 ## Response
 
@@ -79,7 +74,6 @@ minimum_age | int | Yes | Required minimum age
 }
 ```
 
----
 
 ## Error Responses
 
@@ -105,7 +99,6 @@ minimum_age | int | Yes | Required minimum age
 }
 ```
 
----
 
 ## Example Usage
 
@@ -149,7 +142,6 @@ response = requests.post(url, json=payload)
 print(response.json())
 ```
 
----
 
 ## Rate Limiting
 
@@ -158,7 +150,6 @@ Plan | Limit
 Free | 30 requests per minute
 Paid (RapidAPI) | Higher limits available
 
----
 
 ## Use Cases
 
@@ -169,7 +160,6 @@ Paid (RapidAPI) | Higher limits available
 - Feature gating inside mobile or web apps
 - COPPA-adjacent compliance checks
 
----
 
 ## API Documentation (Swagger)
 
@@ -177,7 +167,6 @@ Interactive API docs are available at:
 
 https://age-gating-api.onrender.com/docs
 
----
 
 ## Disclaimer
 
@@ -186,7 +175,6 @@ It does not perform identity verification or guarantee legal compliance.
 
 You are responsible for ensuring your application meets all applicable laws and regulations.
 
----
 
 ## Tech Stack
 
@@ -196,14 +184,12 @@ You are responsible for ensuring your application meets all applicable laws and 
 - SlowAPI (rate limiting)
 - Render (hosting)
 
----
 
 ## Support
 
 - Open a GitHub Issue
 - Contact via RapidAPI messaging
 
----
 
 ## License
 
