@@ -205,7 +205,7 @@ print(response.json())
 
 Plan | Limit 
 ----- | ----
-Free | 10 requests per minute (200 max per month)
+Free | 30 requests per minute (200 max per month)
 Paid (RapidAPI) | Higher limits available
 
 

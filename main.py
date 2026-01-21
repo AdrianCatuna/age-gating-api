@@ -228,11 +228,13 @@ def get_age_band(age: int) -> str:
 # ENDPOINTS
 # ------------------------
 @app.get("/health")
+@app.head("/health")
 def health_check():
     return {"status": "ok"}
 
+
 @app.post("/age-gate/check", response_model=AgeGateResponse)
-@limiter.limit("10/minute")
+@limiter.limit("30/minute")
 def age_gate_check(payload: AgeGateRequest, request: Request):
     # Determine age and DOB
     if payload.child_dob:
