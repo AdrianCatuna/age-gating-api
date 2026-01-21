@@ -40,7 +40,8 @@ Designed for apps and services targeting families, children, and compliance-sens
 
 ## Base URL
 
-https://age-gating-api.onrender.com
+https://age-gating-api.p.rapidapi.com
+(available at https://rapidapi.com/adrian1kat/api/age-gating-api)
 
 
 ## Endpoint Overview
