@@ -234,7 +234,7 @@ def health_check():
 
 
 @app.post("/age-gate/check", response_model=AgeGateResponse)
-@limiter.limit("30/minute")
+@limiter.limit("40/minute")
 def age_gate_check(payload: AgeGateRequest, request: Request):
     # Determine age and DOB
     if payload.child_dob:

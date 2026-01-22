@@ -1,5 +1,7 @@
 # Age Gating API
 
+Available on RapidAPI - https://rapidapi.com/adrian1kat/api/age-gating-api
+
 A lightweight, developer-friendly API that helps applications determine whether a user meets minimum age requirements for specific features based on region.
 
 Available features: 
@@ -206,7 +208,7 @@ print(response.json())
 
 Plan | Limit 
 ----- | ----
-Free | 30 requests per minute (200 max per month)
+Free | 40 requests per minute (200 max per month)
 Paid (RapidAPI) | Higher limits available
 
 
