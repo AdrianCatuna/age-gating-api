@@ -1,54 +1,21 @@
-# Age Gating API
+## Use Cases
 
-Available on RapidAPI - https://rapidapi.com/adrian1kat/api/age-gating-api
-
-A lightweight, developer-friendly API that helps applications determine whether a user meets minimum age requirements for specific features based on region.
-
-Available features: 
-- free_chat
-- user_generated_content
-- location_sharing
-- voice_recording
-- image_upload
-- ai_chat
-- push_notifications, personalized_ads
-
-Available regions:
-- US (United States)
-- CA (Canada)
-- GB (United Kingdom)
-- AU (Australia)
-- DE (Germany)
-- FR (France)
-- JP (Japan)
-- IN (India)
-- BR (Brazil)
-- MX (Mexico)
-- CN (China)
-- KR (South Korea)
-- ZA (South Africa)
-
-Designed for apps and services targeting families, children, and compliance-sensitive platforms.
-
-
-## Features
-
-- Simple age eligibility checks
-- Works for COPPA, app feature gating, and content restrictions
-- Developer-friendly JSON requests and responses
-- Built with FastAPI (high performance)
-- Rate-limited for fair usage
-
+- Parental control apps
+- Kids’ games and educational platforms
+- Video streaming services
+- Social platforms with age restrictions
+- Feature gating inside mobile or web apps
+- COPPA-adjacent compliance checks
 
 ## Base URL
 
 https://age-gating-api.p.rapidapi.com
-(available at https://rapidapi.com/adrian1kat/api/age-gating-api)
 
 
-## Endpoint Overview
+## Endpoints Overview
 
 ### POST /age-gate/check
+### POST /age-gate/check-bulk
 
 Determines whether a user meets a minimum age requirement.
 
@@ -66,9 +33,10 @@ Field | Type | Required | Description
 child_dob| date | No | Child’s date of birth in YYYY-MM-DD format (dob or age must be provided)
 age | int | No | Child's age (dob or age must be provided)
 region | string | Yes | ISO country code representing the child’s region (example: US)
-feature | string | Yes | Feature to check eligibility for (options: free_chat, user_generated_content, location_sharing, voice_recording, image_upload, ai_chat, push_notifications, personalized_ads)
+feature (for single request) | string | Yes | Feature to check eligibility for (options: free_chat, user_generated_content, location_sharing, voice_recording, image_upload, ai_chat, push_notifications, personalized_ads)
+feature (for bulk request) |  list (array) | Yes | Bulk features to check eligibility for (options: free_chat, user_generated_content, location_sharing, voice_recording, image_upload, ai_chat, push_notifications, personalized_ads)
 
-### Example Request
+### Example Request for single feature check
 
 ```json
 {
@@ -78,13 +46,20 @@ feature | string | Yes | Feature to check eligibility for (options: free_chat, u
   "feature": "free_chat"
 }
 ```
+### Example Request for bulk feature check
 
+```json
+{
+  "child_dob": "2018-06-12",
+  "age": 7,
+  "region": "US",
+  "features": ["free_chat", "ai_chat", "voice_recording", "push_notifications"]
+}
+```
 
-## Successful Responses
+## Successful Responses (200)
 
-### Success Response (200)
-
-### Allowed = True Example
+### Single Feature
 
 ```json
 {
@@ -97,75 +72,23 @@ feature | string | Yes | Feature to check eligibility for (options: free_chat, u
   "disclaimer": "This response provides general guidance only and does not constitute legal advice."
 }
 ```
-### Allowed = False Example
+### Bulk Features
 
 ```json
 {
-  "allowed": false,
-  "reason_code": "AGE_RESTRICTED",
-  "reason": "free_chat is restricted for children under 13 in US",
-  "age": 7,
-  "age_band": "5-7",
-  "next_eligible_date": "2031-06-12",
-  "disclaimer": "This response provides general guidance only and does not constitute legal advice."
-}
+"age":7,
+"age_band":"5-7",
+"region":"US",
+"results":[
+  {"feature":"free_chat","allowed":false,"reason_code":"AGE_RESTRICTED","reason":"free_chat is restricted for children under 13 in US","min_age_required":13,"next_eligible_date":"2031-06-12"},
+  {"feature":"ai_chat","allowed":false,"reason_code":"AGE_RESTRICTED","reason":"ai_chat is restricted for children under 13 in US","min_age_required":13,"next_eligible_date":"2031-06-12"},
+  {"feature":"voice_recording","allowed":false,"reason_code":"AGE_RESTRICTED","reason":"voice_recording is restricted for children under 8 in US","min_age_required":8,"next_eligible_date":"2026-06-12"},
+  {"feature":"push_notifications","allowed":true,"reason_code":"ALLOWED","reason":"push_notifications is allowed for this age group","min_age_required":5,"next_eligible_date":null}
+],
+"summary":{"total_features_checked":4,"allowed":1,"restricted":3},"disclaimer":"This response provides general guidance only and does not constitute legal advice."}
 ```
 
-### POST /age-gate/check-bulk
-
-Check multiple features at once for a single user.
-
-#### Request Body
-```json
-{
-  "child_dob": "2018-06-12",
-  "region": "US",
-  "features": ["free_chat", "ai_chat", "voice_recording", "location_sharing"]
-}
-```
-
-#### Response (200)
-```json
-{
-  "age": 7,
-  "age_band": "5-7",
-  "region": "US",
-  "results": [
-    {
-      "feature": "free_chat",
-      "allowed": false,
-      "reason_code": "AGE_RESTRICTED",
-      "reason": "free_chat is restricted for children under 13 in US",
-      "min_age_required": 13,
-      "next_eligible_date": "2031-06-12"
-    },
-    {
-      "feature": "voice_recording",
-      "allowed": false,
-      "reason_code": "AGE_RESTRICTED",
-      "reason": "voice_recording is restricted for children under 8 in US",
-      "min_age_required": 8,
-      "next_eligible_date": "2026-06-12"
-    },
-    {
-      "feature": "push_notifications",
-      "allowed": true,
-      "reason_code": "ALLOWED",
-      "reason": "push_notifications is allowed for this age group",
-      "min_age_required": 5,
-      "next_eligible_date": null
-    }
-  ],
-  "summary": {
-    "total_features_checked": 3,
-    "allowed": 1,
-    "restricted": 2
-  },
-  "disclaimer": "This response provides general guidance only and does not constitute legal advice."
-}
-```
-
-## Error Responses
+## Error Responses (422)
 
 ### Validation Error Example (422)
 
@@ -199,7 +122,7 @@ Check multiple features at once for a single user.
 
 ## Example Usage
 
-### cURL
+### cURL (bulk features request)
 
 ```bash
 curl -X POST "https://age-gating-api.onrender.com/age-gate/check" \
@@ -208,11 +131,11 @@ curl -X POST "https://age-gating-api.onrender.com/age-gate/check" \
 -d '{
   "child_dob": "2018-06-12",
   "region": "US",
-  "feature": "free_chat"
+  "features": ["free_chat", "ai_chat", "voice_recording", "push_notifications"]
 }'
 ```
 
-### JavaScript (Fetch)
+### JavaScript (Fetch) (single feature request)
 
 ```javascript
 fetch("https://age-gating-api.onrender.com/age-gate/check", {
@@ -227,12 +150,12 @@ fetch("https://age-gating-api.onrender.com/age-gate/check", {
     feature: "free_chat"
   })
 })
-.then(response => response.json())
-.then(data => console.log(data))
-.catch(error => console.error('Error:', error));
+.then(response =&gt; response.json())
+.then(data =&gt; console.log(data))
+.catch(error =&gt; console.error('Error:', error));
 ```
 
-### Python
+### Python (bulk features request)
 
 ```python
 import requests
@@ -247,7 +170,7 @@ headers = {
 payload = {
     "child_dob": "2018-06-12",
     "region": "US",
-    "feature": "free_chat"
+    "features": ["free_chat", "ai_chat", "voice_recording", "push_notifications"]
 }
 
 response = requests.post(url, json=payload, headers=headers)
@@ -263,17 +186,6 @@ Plan | Limit
 ----- | ----
 Free | 40 requests per minute (200 max per month)
 Paid (RapidAPI) | Higher limits available
-
-
-## Use Cases
-
-- Parental control apps
-- Kids’ games and educational platforms
-- Video streaming services
-- Social platforms with age restrictions
-- Feature gating inside mobile or web apps
-- COPPA-adjacent compliance checks
-
 
 ## API Documentation (Swagger)
 

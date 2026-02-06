@@ -309,6 +309,7 @@ def age_gate_check(payload: AgeGateRequest, request: Request):
         ),
         age=age,
         age_band=get_age_band(age),
+        region=region,
         next_eligible_date=(dob.replace(year=dob.year + min_age).isoformat()
                             if not allowed else None),
         disclaimer="This response provides general guidance only and does not constitute legal advice."
