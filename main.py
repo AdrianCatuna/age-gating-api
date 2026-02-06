@@ -212,6 +212,36 @@ class AgeGateResponse(BaseModel):
     next_eligible_date: Optional[str]
     disclaimer: str
 
+class BulkAgeGateRequest(BaseModel):
+    child_dob: Optional[date] = Field(None, description="Child's date of birth in YYYY-MM-DD format", example="2018-06-12")
+    age: Optional[int] = Field(None, description="Child's age in years", example=7)
+    region: str = Field(..., description="Country code, e.g., US", example="US")
+    features: list[str] = Field(..., description="List of features to check access for", example=["free_chat", "ai_chat", "voice_recording"])
+
+    @model_validator(mode="before")
+    def check_dob_or_age(cls, values):
+        dob = values.get("child_dob")
+        age = values.get("age")
+        if not dob and age is None:
+            raise ValueError("Either 'child_dob' or 'age' must be provided.")
+        return values
+
+class FeatureResult(BaseModel):
+    feature: str
+    allowed: bool
+    reason_code: str
+    reason: str
+    min_age_required: int
+    next_eligible_date: Optional[str]
+
+class BulkAgeGateResponse(BaseModel):
+    age: int
+    age_band: str
+    region: str
+    results: list[FeatureResult]
+    summary: dict  # e.g., {"allowed": 3, "restricted": 5}
+    disclaimer: str
+
 # ------------------------
 # UTILS
 # ------------------------
@@ -281,6 +311,84 @@ def age_gate_check(payload: AgeGateRequest, request: Request):
         age_band=get_age_band(age),
         next_eligible_date=(dob.replace(year=dob.year + min_age).isoformat()
                             if not allowed else None),
+        disclaimer="This response provides general guidance only and does not constitute legal advice."
+    )
+
+    return response
+
+@app.post("/age-gate/check-bulk", response_model=BulkAgeGateResponse)
+@limiter.limit("40/minute")  
+def age_gate_check_bulk(payload: BulkAgeGateRequest, request: Request):
+    # Determine age and DOB (same logic as single check)
+    if payload.child_dob:
+        age = calculate_age(payload.child_dob)
+        dob = payload.child_dob
+    else:
+        age = payload.age
+        today = date.today()
+        dob = date(today.year - age, today.month, today.day)
+
+    # Optional: verify consistency if both provided
+    if payload.child_dob and payload.age is not None:
+        calculated_age = calculate_age(payload.child_dob)
+        if payload.age != calculated_age:
+            raise HTTPException(
+                status_code=400,
+                detail=f"Provided age {payload.age} does not match date of birth (calculated age {calculated_age})"
+            )
+
+    region = payload.region
+    features = payload.features
+
+    # Get region rules
+    region_rules = RULES.get(region, DEFAULT_RULES)
+
+    # Check each feature
+    results = []
+    allowed_count = 0
+    restricted_count = 0
+
+    for feature in features:
+        min_age = region_rules.get(feature)
+        
+        if min_age is None:
+            # Skip unsupported features or add to errors
+            continue
+        
+        allowed = age >= min_age
+        
+        if allowed:
+            allowed_count += 1
+        else:
+            restricted_count += 1
+
+        results.append(FeatureResult(
+            feature=feature,
+            allowed=allowed,
+            reason_code="ALLOWED" if allowed else "AGE_RESTRICTED",
+            reason=(
+                f"{feature} is allowed for this age group"
+                if allowed else
+                f"{feature} is restricted for children under {min_age} in {region}"
+            ),
+            min_age_required=min_age,
+            next_eligible_date=(
+                dob.replace(year=dob.year + min_age).isoformat()
+                if not allowed else None
+            )
+        ))
+
+    # Prepare response
+    response = BulkAgeGateResponse(
+        age=age,
+        age_band=get_age_band(age),
+        region=region,
+        results=results,
+        summary={
+            "total_features_checked": len(results),
+            "allowed": allowed_count,
+            "restricted": restricted_count
+        },
         disclaimer="This response provides general guidance only and does not constitute legal advice."
     )
 

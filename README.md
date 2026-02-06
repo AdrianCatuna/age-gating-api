@@ -111,6 +111,59 @@ feature | string | Yes | Feature to check eligibility for (options: free_chat, u
 }
 ```
 
+### POST /age-gate/check-bulk
+
+Check multiple features at once for a single user.
+
+#### Request Body
+```json
+{
+  "child_dob": "2018-06-12",
+  "region": "US",
+  "features": ["free_chat", "ai_chat", "voice_recording", "location_sharing"]
+}
+```
+
+#### Response (200)
+```json
+{
+  "age": 7,
+  "age_band": "5-7",
+  "region": "US",
+  "results": [
+    {
+      "feature": "free_chat",
+      "allowed": false,
+      "reason_code": "AGE_RESTRICTED",
+      "reason": "free_chat is restricted for children under 13 in US",
+      "min_age_required": 13,
+      "next_eligible_date": "2031-06-12"
+    },
+    {
+      "feature": "voice_recording",
+      "allowed": false,
+      "reason_code": "AGE_RESTRICTED",
+      "reason": "voice_recording is restricted for children under 8 in US",
+      "min_age_required": 8,
+      "next_eligible_date": "2026-06-12"
+    },
+    {
+      "feature": "push_notifications",
+      "allowed": true,
+      "reason_code": "ALLOWED",
+      "reason": "push_notifications is allowed for this age group",
+      "min_age_required": 5,
+      "next_eligible_date": null
+    }
+  ],
+  "summary": {
+    "total_features_checked": 3,
+    "allowed": 1,
+    "restricted": 2
+  },
+  "disclaimer": "This response provides general guidance only and does not constitute legal advice."
+}
+```
 
 ## Error Responses
 
