@@ -1,3 +1,50 @@
+Region-aware age verification API for compliance and child safety.
+
+Determine whether users meet minimum age requirements for features like chat, location sharing, AI interactions, and personalized ads—based on their country's regulations.
+
+Supports 18+ regions with rules aligned to COPPA, GDPR, LGPD, and other privacy laws. Perfect for parental control apps, educational platforms, social features, and family-friendly services.
+
+Send age/DOB + region + feature → Get instant eligibility status with clear reason codes.
+
+Bulk checking supported. Production-ready with rate limiting.
+
+## Available Features
+
+- free_chat
+- user_generated_content
+- location_sharing
+- voice_recording
+- image_upload
+- ai_chat
+- push_notifications
+- personalized_ads
+
+
+## Available Regions
+
+Region | Code | Key Age Thresholds | Notes
+------ | ---- | ------------------ | -----
+United States | US | 13 | COPPA compliance
+Canada | CA | 13 | PIPEDA aligned
+United Kingdom | GB | 13 (location: 18) | Age Appropriate Design Code
+Australia | AU | 13 | Privacy Act
+Germany | DE | 16 | GDPR strict interpretation
+France | FR | 15 | GDPR
+Italy | IT | 14 | GDPR
+Spain | ES | 14 | GDPR
+Netherlands | NL | 16 | GDPR strict interpretation
+Poland | PL | 16 | GDPR strict interpretation
+Sweden | SE | 13 | GDPR permissive interpretation
+Japan | JP | 13 (location/ads: 16) | Personal Info Protection
+India | IN | 18 | Digital Personal Data Protection Act
+Brazil | BR | 13 (location/ads: 18) | LGPD
+Mexico | MX | 13 (location/ads: 18) | Federal Data Protection Law
+China | CN | 14 | Personal Info Protection Law
+South Korea | KR | 14 | Personal Info Protection Act
+South Africa | ZA | 18 | POPIA (very protective)
+
+**Default**: For unlisted regions, defaults to age 13 for all features.
+
 ## Use Cases
 
 - Parental control apps
@@ -14,8 +61,8 @@ https://age-gating-api.p.rapidapi.com
 
 ## Endpoints Overview
 
-### POST /age-gate/check
-### POST /age-gate/check-bulk
+- POST /age-gate/check
+- POST /age-gate/check-bulk
 
 Determines whether a user meets a minimum age requirement.
 
@@ -68,6 +115,7 @@ feature (for bulk request) |  list (array) | Yes | Bulk features to check eligib
   "reason": "free_chat is allowed for this age group",
   "age": 15,
   "age_band": "13+",
+  "region":"US",
   "next_eligible_date": null,
   "disclaimer": "This response provides general guidance only and does not constitute legal advice."
 }
@@ -194,12 +242,17 @@ Interactive API docs are available at:
 https://age-gating-api.onrender.com/docs
 
 
-## Disclaimer
+## Important Legal Disclaimer
 
-This API provides age-based eligibility logic only.
-It does not perform identity verification or guarantee legal compliance.
+**These age thresholds are based on common interpretations of digital consent and privacy laws as of 2025.** 
 
-You are responsible for ensuring your application meets all applicable laws and regulations.
+- Laws vary by jurisdiction and change over time
+- Some regions require parental consent for ages below the threshold
+- This API provides technical guidance only, NOT legal advice
+- Always consult with legal counsel for compliance requirements
+- You are responsible for ensuring compliance with all applicable laws
+
+**Parental Consent**: Many regions allow usage below the stated age WITH verified parental consent. This API does not handle consent verification.
 
 
 ## Tech Stack

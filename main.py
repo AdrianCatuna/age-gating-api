@@ -34,147 +34,198 @@ def rate_limit_handler(request: Request, exc: RateLimitExceeded):
 # RULE DEFINITIONS
 # ------------------------
 RULES = {
-    "US": {
+    "US": {  # United States - COPPA
         "free_chat": 13,
         "user_generated_content": 13,
         "location_sharing": 13,
-        "voice_recording": 8,
-        "image_upload": 8,
+        "voice_recording": 13,
+        "image_upload": 13,
         "ai_chat": 13,
-        "push_notifications": 5,
+        "push_notifications": 13,
         "personalized_ads": 13
     },
-    "CA": {  # Canada
+    "CA": {  # Canada - PIPEDA
         "free_chat": 13,
         "user_generated_content": 13,
         "location_sharing": 13,
-        "voice_recording": 8,
-        "image_upload": 8,
+        "voice_recording": 13,
+        "image_upload": 13,
         "ai_chat": 13,
-        "push_notifications": 5,
+        "push_notifications": 13,
         "personalized_ads": 13
     },
-    "GB": {  # United Kingdom
+    "GB": {  # United Kingdom - Age Appropriate Design Code
         "free_chat": 13,
         "user_generated_content": 13,
-        "location_sharing": 13,
-        "voice_recording": 8,
-        "image_upload": 8,
+        "location_sharing": 18,  # Stricter for location
+        "voice_recording": 13,
+        "image_upload": 13,
         "ai_chat": 13,
-        "push_notifications": 5,
+        "push_notifications": 13,
         "personalized_ads": 13
     },
-    "AU": {  # Australia
+    "AU": {  # Australia - Privacy Act
         "free_chat": 13,
         "user_generated_content": 13,
         "location_sharing": 13,
-        "voice_recording": 8,
-        "image_upload": 8,
+        "voice_recording": 13,
+        "image_upload": 13,
         "ai_chat": 13,
-        "push_notifications": 5,
+        "push_notifications": 13,
         "personalized_ads": 13
     },
-    "DE": {  # Germany
+    "DE": {  # Germany - GDPR (stricter interpretation)
+        "free_chat": 16,
+        "user_generated_content": 16,
+        "location_sharing": 16,
+        "voice_recording": 16,
+        "image_upload": 16,
+        "ai_chat": 16,
+        "push_notifications": 14,
+        "personalized_ads": 16
+    },
+    "FR": {  # France - GDPR
+        "free_chat": 15,
+        "user_generated_content": 15,
+        "location_sharing": 15,
+        "voice_recording": 15,
+        "image_upload": 15,
+        "ai_chat": 15,
+        "push_notifications": 13,
+        "personalized_ads": 15
+    },
+    "JP": {  # Japan - Act on Protection of Personal Information
+        "free_chat": 13,
+        "user_generated_content": 13,
+        "location_sharing": 16,
+        "voice_recording": 13,
+        "image_upload": 13,
+        "ai_chat": 13,
+        "push_notifications": 13,
+        "personalized_ads": 16
+    },
+    "IN": {  # India - Digital Personal Data Protection Act
+        "free_chat": 18,
+        "user_generated_content": 18,
+        "location_sharing": 18,
+        "voice_recording": 18,
+        "image_upload": 18,
+        "ai_chat": 18,
+        "push_notifications": 13,
+        "personalized_ads": 18
+    },
+    "BR": {  # Brazil - LGPD
+        "free_chat": 13,
+        "user_generated_content": 13,
+        "location_sharing": 18,  # Stricter for location data
+        "voice_recording": 13,
+        "image_upload": 13,
+        "ai_chat": 13,
+        "push_notifications": 13,
+        "personalized_ads": 18  # Requires adult consent
+    },
+    "MX": {  # Mexico - Federal Law on Protection of Personal Data
+        "free_chat": 13,
+        "user_generated_content": 13,
+        "location_sharing": 18,
+        "voice_recording": 13,
+        "image_upload": 13,
+        "ai_chat": 13,
+        "push_notifications": 13,
+        "personalized_ads": 18
+    },
+    "CN": {  # China - Personal Information Protection Law
+        "free_chat": 14,
+        "user_generated_content": 14,
+        "location_sharing": 14,
+        "voice_recording": 14,
+        "image_upload": 14,
+        "ai_chat": 14,
+        "push_notifications": 14,
+        "personalized_ads": 14
+    },
+    "KR": {  # South Korea - Personal Information Protection Act
+        "free_chat": 14,
+        "user_generated_content": 14,
+        "location_sharing": 14,
+        "voice_recording": 14,
+        "image_upload": 14,
+        "ai_chat": 14,
+        "push_notifications": 14,
+        "personalized_ads": 14
+    },
+    "ZA": {  # South Africa - POPIA
+        "free_chat": 18,
+        "user_generated_content": 18,
+        "location_sharing": 18,
+        "voice_recording": 18,
+        "image_upload": 18,
+        "ai_chat": 18,
+        "push_notifications": 13,
+        "personalized_ads": 18
+    },
+    # EU Countries with GDPR variations
+    "IT": {  # Italy - GDPR
+        "free_chat": 14,
+        "user_generated_content": 14,
+        "location_sharing": 14,
+        "voice_recording": 14,
+        "image_upload": 14,
+        "ai_chat": 14,
+        "push_notifications": 13,
+        "personalized_ads": 14
+    },
+    "ES": {  # Spain - GDPR
+        "free_chat": 14,
+        "user_generated_content": 14,
+        "location_sharing": 14,
+        "voice_recording": 14,
+        "image_upload": 14,
+        "ai_chat": 14,
+        "push_notifications": 13,
+        "personalized_ads": 14
+    },
+    "NL": {  # Netherlands - GDPR
+        "free_chat": 16,
+        "user_generated_content": 16,
+        "location_sharing": 16,
+        "voice_recording": 16,
+        "image_upload": 16,
+        "ai_chat": 16,
+        "push_notifications": 13,
+        "personalized_ads": 16
+    },
+    "SE": {  # Sweden - GDPR
         "free_chat": 13,
         "user_generated_content": 13,
         "location_sharing": 13,
-        "voice_recording": 8,
-        "image_upload": 8,
+        "voice_recording": 13,
+        "image_upload": 13,
         "ai_chat": 13,
-        "push_notifications": 5,
+        "push_notifications": 13,
         "personalized_ads": 13
     },
-    "FR": {  # France
-        "free_chat": 13,
-        "user_generated_content": 13,
-        "location_sharing": 13,
-        "voice_recording": 8,
-        "image_upload": 8,
-        "ai_chat": 13,
-        "push_notifications": 5,
-        "personalized_ads": 13
+    "PL": {  # Poland - GDPR
+        "free_chat": 16,
+        "user_generated_content": 16,
+        "location_sharing": 16,
+        "voice_recording": 16,
+        "image_upload": 16,
+        "ai_chat": 16,
+        "push_notifications": 13,
+        "personalized_ads": 16
     },
-    "JP": {  # Japan
-        "free_chat": 13,
-        "user_generated_content": 13,
-        "location_sharing": 13,
-        "voice_recording": 8,
-        "image_upload": 8,
-        "ai_chat": 13,
-        "push_notifications": 5,
-        "personalized_ads": 13
-    },
-    "IN": {  # India
-        "free_chat": 13,
-        "user_generated_content": 13,
-        "location_sharing": 13,
-        "voice_recording": 8,
-        "image_upload": 8,
-        "ai_chat": 13,
-        "push_notifications": 5,
-        "personalized_ads": 13
-    },
-    "BR": {  # Brazil
-        "free_chat": 13,
-        "user_generated_content": 13,
-        "location_sharing": 13,
-        "voice_recording": 8,
-        "image_upload": 8,
-        "ai_chat": 13,
-        "push_notifications": 5,
-        "personalized_ads": 13
-    },
-    "MX": {  # Mexico
-        "free_chat": 13,
-        "user_generated_content": 13,
-        "location_sharing": 13,
-        "voice_recording": 8,
-        "image_upload": 8,
-        "ai_chat": 13,
-        "push_notifications": 5,
-        "personalized_ads": 13
-    },
-    "CN": {  # China
-        "free_chat": 13,
-        "user_generated_content": 13,
-        "location_sharing": 13,
-        "voice_recording": 8,
-        "image_upload": 8,
-        "ai_chat": 13,
-        "push_notifications": 5,
-        "personalized_ads": 13
-    },
-    "KR": {  # South Korea
-        "free_chat": 13,
-        "user_generated_content": 13,
-        "location_sharing": 13,
-        "voice_recording": 8,
-        "image_upload": 8,
-        "ai_chat": 13,
-        "push_notifications": 5,
-        "personalized_ads": 13
-    },
-    "ZA": {  # South Africa
-        "free_chat": 13,
-        "user_generated_content": 13,
-        "location_sharing": 13,
-        "voice_recording": 8,
-        "image_upload": 8,
-        "ai_chat": 13,
-        "push_notifications": 5,
-        "personalized_ads": 13
-    }
 }
 
-# Default rules for any other region
+# Default rules for any other region (conservative approach)
 DEFAULT_RULES = {
     "free_chat": 13,
     "user_generated_content": 13,
     "location_sharing": 13,
-    "voice_recording": 8,
-    "image_upload": 8,
+    "voice_recording": 13,
+    "image_upload": 13,
     "ai_chat": 13,
-    "push_notifications": 5,
+    "push_notifications": 13,
     "personalized_ads": 13
 }
 
