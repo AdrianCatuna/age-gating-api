@@ -209,6 +209,7 @@ class AgeGateResponse(BaseModel):
     reason: str
     age: int
     age_band: str
+    region: str
     next_eligible_date: Optional[str]
     disclaimer: str
 
