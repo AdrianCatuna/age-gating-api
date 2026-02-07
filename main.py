@@ -229,6 +229,138 @@ DEFAULT_RULES = {
     "personalized_ads": 13
 }
 
+# ------------------------
+# REGION METADATA
+# ------------------------
+REGION_METADATA = {
+    "US": {
+        "name": "United States",
+        "primary_regulation": "COPPA (Children's Online Privacy Protection Act)",
+        "general_age_threshold": 13,
+        "notable_exceptions": {},
+        "description": "Federal law requiring parental consent for collection of personal information from children under 13."
+    },
+    "CA": {
+        "name": "Canada",
+        "primary_regulation": "PIPEDA (Personal Information Protection and Electronic Documents Act)",
+        "general_age_threshold": 13,
+        "notable_exceptions": {},
+        "description": "Federal privacy law with provincial variations for data collection from minors."
+    },
+    "GB": {
+        "name": "United Kingdom",
+        "primary_regulation": "Age Appropriate Design Code (Children's Code)",
+        "general_age_threshold": 13,
+        "notable_exceptions": {"location_sharing": 18},
+        "description": "ICO code requiring high privacy standards for services likely to be accessed by children under 18."
+    },
+    "AU": {
+        "name": "Australia",
+        "primary_regulation": "Privacy Act 1988",
+        "general_age_threshold": 13,
+        "notable_exceptions": {},
+        "description": "Australian privacy law with specific protections for children's personal information."
+    },
+    "DE": {
+        "name": "Germany",
+        "primary_regulation": "GDPR + German Federal Data Protection Act",
+        "general_age_threshold": 16,
+        "notable_exceptions": {},
+        "description": "Strict interpretation of GDPR requiring age 16 for consent to data processing."
+    },
+    "FR": {
+        "name": "France",
+        "primary_regulation": "GDPR (French implementation)",
+        "general_age_threshold": 15,
+        "notable_exceptions": {},
+        "description": "France set the digital consent age at 15 under GDPR."
+    },
+    "IT": {
+        "name": "Italy",
+        "primary_regulation": "GDPR (Italian implementation)",
+        "general_age_threshold": 14,
+        "notable_exceptions": {},
+        "description": "Italy set the digital consent age at 14 under GDPR."
+    },
+    "ES": {
+        "name": "Spain",
+        "primary_regulation": "GDPR (Spanish implementation)",
+        "general_age_threshold": 14,
+        "notable_exceptions": {},
+        "description": "Spain set the digital consent age at 14 under GDPR."
+    },
+    "NL": {
+        "name": "Netherlands",
+        "primary_regulation": "GDPR (Dutch implementation)",
+        "general_age_threshold": 16,
+        "notable_exceptions": {},
+        "description": "Netherlands requires age 16 for consent to data processing under GDPR."
+    },
+    "PL": {
+        "name": "Poland",
+        "primary_regulation": "GDPR (Polish implementation)",
+        "general_age_threshold": 16,
+        "notable_exceptions": {},
+        "description": "Poland requires age 16 for consent to data processing under GDPR."
+    },
+    "SE": {
+        "name": "Sweden",
+        "primary_regulation": "GDPR (Swedish implementation)",
+        "general_age_threshold": 13,
+        "notable_exceptions": {},
+        "description": "Sweden set the digital consent age at 13 under GDPR."
+    },
+    "JP": {
+        "name": "Japan",
+        "primary_regulation": "Act on Protection of Personal Information (APPI)",
+        "general_age_threshold": 13,
+        "notable_exceptions": {"location_sharing": 16, "personalized_ads": 16},
+        "description": "Japanese privacy law with enhanced protections for location data and behavioral advertising."
+    },
+    "IN": {
+        "name": "India",
+        "primary_regulation": "Digital Personal Data Protection Act 2023",
+        "general_age_threshold": 18,
+        "notable_exceptions": {},
+        "description": "Verifiable parental consent required for processing data of children under 18."
+    },
+    "BR": {
+        "name": "Brazil",
+        "primary_regulation": "LGPD (Lei Geral de Proteção de Dados)",
+        "general_age_threshold": 13,
+        "notable_exceptions": {"location_sharing": 18, "personalized_ads": 18},
+        "description": "Brazilian data protection law requiring parental consent for minors, with stricter rules for location and advertising data."
+    },
+    "MX": {
+        "name": "Mexico",
+        "primary_regulation": "Federal Law on Protection of Personal Data",
+        "general_age_threshold": 13,
+        "notable_exceptions": {"location_sharing": 18, "personalized_ads": 18},
+        "description": "Mexican privacy law with enhanced protections for sensitive data like location and advertising."
+    },
+    "CN": {
+        "name": "China",
+        "primary_regulation": "Personal Information Protection Law (PIPL)",
+        "general_age_threshold": 14,
+        "notable_exceptions": {},
+        "description": "Parental consent required for processing personal information of minors under 14."
+    },
+    "KR": {
+        "name": "South Korea",
+        "primary_regulation": "Personal Information Protection Act (PIPA)",
+        "general_age_threshold": 14,
+        "notable_exceptions": {},
+        "description": "Parental consent required for children under 14, with strict age verification requirements."
+    },
+    "ZA": {
+        "name": "South Africa",
+        "primary_regulation": "POPIA (Protection of Personal Information Act)",
+        "general_age_threshold": 18,
+        "notable_exceptions": {},
+        "description": "Very protective approach considering anyone under 18 a child requiring consent."
+    }
+}
+
 # Age bands
 AGE_BANDS = [
     (0, 4, "0-4"),
@@ -292,6 +424,20 @@ class BulkAgeGateResponse(BaseModel):
     region: str
     results: list[FeatureResult]
     summary: dict  # e.g., {"allowed": 3, "restricted": 5}
+    disclaimer: str
+
+class RegionInfo(BaseModel):
+    code: str
+    name: str
+    primary_regulation: str
+    general_age_threshold: int
+    notable_exceptions: Optional[dict] = None
+    description: str
+
+class RegionsResponse(BaseModel):
+    total_regions: int
+    regions: list[RegionInfo]
+    default_rules: dict
     disclaimer: str
 
 # ------------------------
@@ -445,4 +591,33 @@ def age_gate_check_bulk(payload: BulkAgeGateRequest, request: Request):
         disclaimer="This response provides general guidance only and does not constitute legal advice."
     )
 
+    return response
+    
+@app.get("/regions", response_model=RegionsResponse)
+def list_regions():
+    """
+    List all supported regions with their privacy regulations and age thresholds.
+    """
+    regions_list = []
+    
+    for code, metadata in REGION_METADATA.items():
+        regions_list.append(RegionInfo(
+            code=code,
+            name=metadata["name"],
+            primary_regulation=metadata["primary_regulation"],
+            general_age_threshold=metadata["general_age_threshold"],
+            notable_exceptions=metadata.get("notable_exceptions"),
+            description=metadata["description"]
+        ))
+    
+    # Sort by region code
+    regions_list.sort(key=lambda x: x.code)
+    
+    response = RegionsResponse(
+        total_regions=len(regions_list),
+        regions=regions_list,
+        default_rules=DEFAULT_RULES,
+        disclaimer="Region rules are based on common interpretations of privacy laws as of 2025. Always consult legal counsel for compliance requirements."
+    )
+    
     return response
