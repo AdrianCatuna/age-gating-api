@@ -595,7 +595,7 @@ def age_gate_check_bulk(payload: BulkAgeGateRequest, request: Request):
 
     return response
  
-@app.get("/regions", response_model=RegionsResponse)
+@app.get("/age-gate/regions", response_model=RegionsResponse)
 def list_regions():
     """
     List all supported regions with their privacy regulations and age thresholds.
