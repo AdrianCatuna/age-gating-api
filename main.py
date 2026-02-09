@@ -229,14 +229,6 @@ DEFAULT_RULES = {
     "personalized_ads": 13
 }
 
-# Age bands
-AGE_BANDS = [
-    (0, 4, "0-4"),
-    (5, 7, "5-7"),
-    (8, 12, "8-12"),
-    (13, 120, "13+")
-]
-
 # ------------------------
 # REGION METADATA
 # ------------------------
@@ -369,6 +361,14 @@ REGION_METADATA = {
     }
 }
 
+# Age bands
+AGE_BANDS = [
+    (0, 4, "0-4"),
+    (5, 7, "5-7"),
+    (8, 12, "8-12"),
+    (13, 120, "13+")
+]
+
 # ------------------------
 # Pydantic Models
 # ------------------------
@@ -427,19 +427,6 @@ class BulkAgeGateResponse(BaseModel):
     summary: dict  # e.g., {"allowed": 3, "restricted": 5}
     disclaimer: str
 
-class RegionInfo(BaseModel):
-    code: str
-    name: str
-    primary_regulation: str
-    general_age_threshold: int
-    notable_exceptions: Optional[dict] = None
-    description: str
-
-class RegionsResponse(BaseModel):
-    total_regions: int
-    regions: list[RegionInfo]
-    default_rules: dict
-    disclaimer: str
 
 # ------------------------
 # UTILS
