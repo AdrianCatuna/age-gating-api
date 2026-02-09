@@ -620,4 +620,4 @@ def list_regions():
         disclaimer="Region rules are based on common interpretations of privacy laws as of 2025. Always consult legal counsel for compliance requirements."
     )
     
-    return response
+    return response 
