@@ -426,6 +426,20 @@ class BulkAgeGateResponse(BaseModel):
     results: list[FeatureResult]
     summary: dict  # e.g., {"allowed": 3, "restricted": 5}
     disclaimer: str
+    
+class RegionInfo(BaseModel):
+    code: str
+    name: str
+    primary_regulation: str
+    general_age_threshold: int
+    notable_exceptions: Optional[dict] = None
+    description: str
+
+class RegionsResponse(BaseModel):
+    total_regions: int
+    regions: list[RegionInfo]
+    default_rules: dict
+    disclaimer: str
 
 
 # ------------------------
