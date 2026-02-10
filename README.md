@@ -24,26 +24,33 @@ Bulk checking supported. Production-ready with rate limiting.
 
 Region | Code | Key Age Thresholds | Notes
 ------ | ---- | ------------------ | -----
-United States | US | 13 | COPPA compliance
-Canada | CA | 13 | PIPEDA aligned
-United Kingdom | GB | 13 (location: 18) | Age Appropriate Design Code
-Australia | AU | 13 | Privacy Act
-Germany | DE | 16 | GDPR strict interpretation
-France | FR | 15 | GDPR
-Italy | IT | 14 | GDPR
-Spain | ES | 14 | GDPR
-Netherlands | NL | 16 | GDPR strict interpretation
-Poland | PL | 16 | GDPR strict interpretation
-Sweden | SE | 13 | GDPR permissive interpretation
-Japan | JP | 13 (location/ads: 16) | Personal Info Protection
-India | IN | 18 | Digital Personal Data Protection Act
-Brazil | BR | 13 (location/ads: 18) | LGPD
-Mexico | MX | 13 (location/ads: 18) | Federal Data Protection Law
-China | CN | 14 | Personal Info Protection Law
-South Korea | KR | 14 | Personal Info Protection Act
-South Africa | ZA | 18 | POPIA (very protective)
+United States | US | 5 (notifications), 8 (media), 13 (social) | COPPA compliance
+Canada | CA | 5 (notifications), 8 (media), 13 (social) | PIPEDA aligned
+United Kingdom | GB | 5 (notifications), 8 (media), 13 (social), 18 (location) | Age Appropriate Design Code
+Australia | AU | 5 (notifications), 8 (media), 13 (social) | Privacy Act
+Germany | DE | 8 (notifications), 12 (media), 16 (social) | GDPR strict interpretation
+France | FR | 6 (notifications), 10 (media), 15 (social) | GDPR
+Italy | IT | 6 (notifications), 10 (media), 14 (social) | GDPR
+Spain | ES | 6 (notifications), 10 (media), 14 (social) | GDPR
+Netherlands | NL | 8 (notifications), 12 (media), 16 (social) | GDPR strict interpretation
+Poland | PL | 8 (notifications), 12 (media), 16 (social) | GDPR strict interpretation
+Sweden | SE | 5 (notifications), 8 (media), 13 (social) | GDPR permissive interpretation
+Japan | JP | 5 (notifications), 8 (media), 13 (social), 16 (location/ads) | Personal Info Protection
+India | IN | 8 (notifications), 13 (media), 18 (social/AI/ads) | Digital Personal Data Protection Act
+Brazil | BR | 5 (notifications), 8 (media), 13 (social), 18 (location/ads) | LGPD
+Mexico | MX | 5 (notifications), 8 (media), 13 (social), 18 (location/ads) | Federal Data Protection Law
+China | CN | 6 (notifications), 10 (media), 14 (social) | Personal Info Protection Law
+South Korea | KR | 6 (notifications), 10 (media), 14 (social) | Personal Info Protection Act
+South Africa | ZA | 8 (notifications), 13 (media), 18 (social/AI/ads) | POPIA (very protective)
 
-**Default**: For unlisted regions, defaults to age 13 for all features.
+**Default**: For unlisted regions, defaults to age 5 (notifications), 8 (media), 13 (social features).
+
+### Feature Categories by Age
+
+- **Notifications** (push_notifications): Ages 5-8 depending on region
+- **Media** (voice_recording, image_upload): Ages 8-13 depending on region  
+- **Social** (free_chat, user_generated_content, ai_chat): Ages 13-18 depending on region
+- **Privacy-Sensitive** (location_sharing, personalized_ads): Ages 13-18 depending on region
 
 ## Use Cases
 
