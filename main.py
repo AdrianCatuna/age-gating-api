@@ -739,7 +739,7 @@ def age_gate_check_bulk(payload: BulkAgeGateRequest, request: Request, response:
     return bulk_response
  
 @app.get("/age-gate/regions", response_model=RegionsResponse)
-def list_regions():
+def list_regions(response: Response):
     """
     List all supported regions with their privacy regulations and age thresholds.
     """
@@ -768,10 +768,10 @@ def list_regions():
         disclaimer="Region rules are based on common interpretations of privacy laws as of 2025. Always consult legal counsel for compliance requirements."
     )
     
-    return response 
+    return regions_response 
     
 @app.get("/age-gate/features", response_model=FeaturesResponse)
-def list_features():
+def list_features(response: Response):
     """
     List all available features with descriptions and age requirements by region.
     """
@@ -813,4 +813,4 @@ def list_features():
         disclaimer="Feature restrictions are based on common interpretations of privacy laws. Always consult legal counsel for compliance requirements."
     )
     
-    return response
+    return features_response
