@@ -61,12 +61,14 @@ https://age-gating-api.p.rapidapi.com
 
 ## Endpoints Overview
 
-- POST /age-gate/check
+- **POST** /age-gate/check
     - Checks min age requirement for single feature.
-- POST /age-gate/check-bulk
+- **POST** /age-gate/check-bulk
     - Checks min age requirement for multiple features.
-- POST /age-gate/regions
+- **GET** /age-gate/regions
     - Lists all supported regions (and additional info for each)
+- **GET** /age-gate/features
+    - List all available features with descriptions and age requirements by region.
 
 Determines whether a user meets a minimum age requirement.
 

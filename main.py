@@ -361,6 +361,52 @@ REGION_METADATA = {
     }
 }
 
+# ------------------------
+# FEATURE METADATA
+# ------------------------
+FEATURE_METADATA = {
+    "free_chat": {
+        "display_name": "Free Chat",
+        "description": "Real-time messaging and chat functionality with other users",
+        "category": "Social"
+    },
+    "user_generated_content": {
+        "display_name": "User Generated Content",
+        "description": "Ability to create, post, and share user-created content (posts, comments, reviews)",
+        "category": "Social"
+    },
+    "location_sharing": {
+        "display_name": "Location Sharing",
+        "description": "Sharing or accessing location data and geolocation features",
+        "category": "Privacy-Sensitive"
+    },
+    "voice_recording": {
+        "display_name": "Voice Recording",
+        "description": "Recording and sharing voice messages or audio content",
+        "category": "Media"
+    },
+    "image_upload": {
+        "display_name": "Image Upload",
+        "description": "Uploading and sharing photos or images",
+        "category": "Media"
+    },
+    "ai_chat": {
+        "display_name": "AI Chat",
+        "description": "Interaction with AI chatbots or conversational AI features",
+        "category": "AI-Powered"
+    },
+    "push_notifications": {
+        "display_name": "Push Notifications",
+        "description": "Receiving push notifications and alerts on device",
+        "category": "Engagement"
+    },
+    "personalized_ads": {
+        "display_name": "Personalized Ads",
+        "description": "Behavioral advertising and personalized ad targeting based on user data",
+        "category": "Advertising"
+    }
+}
+
 # Age bands
 AGE_BANDS = [
     (0, 4, "0-4"),
@@ -441,6 +487,20 @@ class RegionsResponse(BaseModel):
     default_rules: dict
     disclaimer: str
 
+class FeatureInfo(BaseModel):
+    name: str
+    display_name: str
+    description: str
+    category: str
+    age_requirements_by_region: dict  # e.g., {"US": 13, "DE": 16, "IN": 18}
+    most_common_age: int
+    strictest_age: int
+
+class FeaturesResponse(BaseModel):
+    total_features: int
+    features: list[FeatureInfo]
+    categories: list[str]
+    disclaimer: str
 
 # ------------------------
 # UTILS
@@ -453,6 +513,16 @@ def get_age_band(age: int) -> str:
         if min_age <= age <= max_age:
             return band
     return "unknown"
+
+def get_age_requirements_by_region(feature: str) -> dict:
+    """Get age requirements for a feature across all regions."""
+    age_requirements = {}
+    
+    # Check all defined regions
+    for region_code in RULES.keys():
+        age_requirements[region_code] = RULES[region_code].get(feature, DEFAULT_RULES.get(feature))
+    
+    return age_requirements
 
 # ------------------------
 # ENDPOINTS
@@ -623,3 +693,45 @@ def list_regions():
     )
     
     return response 
+    
+@app.get("/age-gate/features", response_model=FeaturesResponse)
+def list_features():
+    """
+    List all available features with descriptions and age requirements by region.
+    """
+    features_list = []
+    categories_set = set()
+    
+    for feature_key, metadata in FEATURE_METADATA.items():
+        # Get age requirements across all regions
+        age_requirements = get_age_requirements_by_region(feature_key)
+        
+        # Calculate most common and strictest ages
+        ages = list(age_requirements.values())
+        most_common_age = max(set(ages), key=ages.count)
+        strictest_age = max(ages)
+        
+        # Track categories
+        categories_set.add(metadata["category"])
+        
+        features_list.append(FeatureInfo(
+            name=feature_key,
+            display_name=metadata["display_name"],
+            description=metadata["description"],
+            category=metadata["category"],
+            age_requirements_by_region=age_requirements,
+            most_common_age=most_common_age,
+            strictest_age=strictest_age
+        ))
+    
+    # Sort by category, then by name
+    features_list.sort(key=lambda x: (x.category, x.name))
+    
+    response = FeaturesResponse(
+        total_features=len(features_list),
+        features=features_list,
+        categories=sorted(list(categories_set)),
+        disclaimer="Feature restrictions are based on common interpretations of privacy laws. Always consult legal counsel for compliance requirements."
+    )
+    
+    return response
