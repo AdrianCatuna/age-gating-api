@@ -441,8 +441,11 @@ class AgeGateResponse(BaseModel):
     reason: str
     age: int
     age_band: str
-    region: str
+    region: str 
+    regulation_reference: str
+    years_until_eligible: Optional[int] 
     next_eligible_date: Optional[str]
+    upcoming_unlocks: Optional[list[dict]]  
     disclaimer: str
 
 class BulkAgeGateRequest(BaseModel):
@@ -471,8 +474,10 @@ class BulkAgeGateResponse(BaseModel):
     age: int
     age_band: str
     region: str
+    regulation_reference: str  # Add this
     results: list[FeatureResult]
-    summary: dict  # e.g., {"allowed": 3, "restricted": 5}
+    summary: dict
+    upcoming_unlocks: Optional[list[dict]]  # Add this
     disclaimer: str
     
 class RegionInfo(BaseModel):
@@ -526,6 +531,39 @@ def get_age_requirements_by_region(feature: str) -> dict:
     
     return age_requirements
 
+def get_upcoming_unlocks(age: int, region: str, dob: date) -> list[dict]:
+    """Get features that will unlock in the next 5 years."""
+    region_rules = RULES.get(region, DEFAULT_RULES)
+    upcoming = []
+    
+    for feature, min_age in region_rules.items():
+        if age < min_age <= age + 5:  # Features unlocking within next 5 years
+            years_until = min_age - age
+            unlock_date = dob.replace(year=dob.year + min_age)
+            
+            # Get feature display name
+            feature_display = FEATURE_METADATA.get(feature, {}).get("display_name", feature)
+            
+            upcoming.append({
+                "feature": feature,
+                "feature_display_name": feature_display,
+                "unlocks_at_age": min_age,
+                "years_until_unlock": years_until,
+                "unlock_date": unlock_date.isoformat()
+            })
+    
+    # Sort by years until unlock
+    upcoming.sort(key=lambda x: x["years_until_unlock"])
+    
+    return upcoming if upcoming else None
+
+def get_regulation_reference(region: str) -> str:
+    """Get the primary regulation/law for a region."""
+    metadata = REGION_METADATA.get(region)
+    if metadata:
+        return metadata["primary_regulation"]
+    return "Standard age verification practices"
+
 # ------------------------
 # ENDPOINTS
 # ------------------------
@@ -569,6 +607,15 @@ def age_gate_check(payload: AgeGateRequest, request: Request):
 
     # Determine if allowed
     allowed = age >= min_age
+    
+    # Calculate years until eligible (if not allowed)
+    years_until_eligible = (min_age - age) if not allowed else None
+
+    # Get upcoming unlocks
+    upcoming_unlocks = get_upcoming_unlocks(age, region, dob)
+    
+    # Get regulation reference
+    regulation_reference = get_regulation_reference(region)
 
     # Prepare response
     response = AgeGateResponse(
@@ -582,8 +629,11 @@ def age_gate_check(payload: AgeGateRequest, request: Request):
         age=age,
         age_band=get_age_band(age),
         region=region,
+        regulation_reference=regulation_reference,
+        years_until_eligible=years_until_eligible,
         next_eligible_date=(dob.replace(year=dob.year + min_age).isoformat()
                             if not allowed else None),
+        upcoming_unlocks=upcoming_unlocks,
         disclaimer="This response provides general guidance only and does not constitute legal advice."
     )
 
@@ -615,6 +665,12 @@ def age_gate_check_bulk(payload: BulkAgeGateRequest, request: Request):
 
     # Get region rules
     region_rules = RULES.get(region, DEFAULT_RULES)
+    
+    # Get regulation reference
+    regulation_reference = get_regulation_reference(region)
+    
+    # Get upcoming unlocks
+    upcoming_unlocks = get_upcoming_unlocks(age, region, dob)
 
     # Check each feature
     results = []
@@ -656,12 +712,14 @@ def age_gate_check_bulk(payload: BulkAgeGateRequest, request: Request):
         age=age,
         age_band=get_age_band(age),
         region=region,
+        regulation_reference=regulation_reference,
         results=results,
         summary={
             "total_features_checked": len(results),
             "allowed": allowed_count,
             "restricted": restricted_count
         },
+        upcoming_unlocks=upcoming_unlocks,
         disclaimer="This response provides general guidance only and does not constitute legal advice."
     )
 
