@@ -117,13 +117,31 @@ feature (for bulk request) |  list (array) | Yes | Bulk features to check eligib
 
 ```json
 {
-  "allowed": true,
-  "reason_code": "ALLOWED",
-  "reason": "free_chat is allowed for this age group",
-  "age": 15,
-  "age_band": "13+",
-  "region":"US",
-  "next_eligible_date": null,
+  "allowed": false,
+  "reason_code": "AGE_RESTRICTED",
+  "reason": "free_chat is restricted for children under 13 in US",
+  "age": 7,
+  "age_band": "5-7",
+  "region": "US",
+  "regulation_reference": "COPPA (Children's Online Privacy Protection Act)",
+  "years_until_eligible": 6,
+  "next_eligible_date": "2031-06-12",
+  "upcoming_unlocks": [
+    {
+      "feature": "voice_recording",
+      "feature_display_name": "Voice Recording",
+      "unlocks_at_age": 8,
+      "years_until_unlock": 1,
+      "unlock_date": "2026-06-12"
+    },
+    {
+      "feature": "image_upload",
+      "feature_display_name": "Image Upload",
+      "unlocks_at_age": 8,
+      "years_until_unlock": 1,
+      "unlock_date": "2026-06-12"
+    }
+  ],
   "disclaimer": "This response provides general guidance only and does not constitute legal advice."
 }
 ```
@@ -131,16 +149,67 @@ feature (for bulk request) |  list (array) | Yes | Bulk features to check eligib
 
 ```json
 {
-"age":7,
-"age_band":"5-7",
-"region":"US",
-"results":[
-  {"feature":"free_chat","allowed":false,"reason_code":"AGE_RESTRICTED","reason":"free_chat is restricted for children under 13 in US","min_age_required":13,"next_eligible_date":"2031-06-12"},
-  {"feature":"ai_chat","allowed":false,"reason_code":"AGE_RESTRICTED","reason":"ai_chat is restricted for children under 13 in US","min_age_required":13,"next_eligible_date":"2031-06-12"},
-  {"feature":"voice_recording","allowed":false,"reason_code":"AGE_RESTRICTED","reason":"voice_recording is restricted for children under 8 in US","min_age_required":8,"next_eligible_date":"2026-06-12"},
-  {"feature":"push_notifications","allowed":true,"reason_code":"ALLOWED","reason":"push_notifications is allowed for this age group","min_age_required":5,"next_eligible_date":null}
-],
-"summary":{"total_features_checked":4,"allowed":1,"restricted":3},"disclaimer":"This response provides general guidance only and does not constitute legal advice."}
+  "age": 7,
+  "age_band": "5-7",
+  "region": "US",
+  "regulation_reference": "COPPA (Children's Online Privacy Protection Act)",
+  "results": [
+    {
+      "feature": "free_chat",
+      "allowed": false,
+      "reason_code": "AGE_RESTRICTED",
+      "reason": "free_chat is restricted for children under 13 in US",
+      "min_age_required": 13,
+      "next_eligible_date": "2031-06-12"
+    },
+    {
+      "feature": "ai_chat",
+      "allowed": false,
+      "reason_code": "AGE_RESTRICTED",
+      "reason": "ai_chat is restricted for children under 13 in US",
+      "min_age_required": 13,
+      "next_eligible_date": "2031-06-12"
+    },
+    {
+      "feature": "voice_recording",
+      "allowed": false,
+      "reason_code": "AGE_RESTRICTED",
+      "reason": "voice_recording is restricted for children under 8 in US",
+      "min_age_required": 8,
+      "next_eligible_date": "2026-06-12"
+    },
+    {
+      "feature": "push_notifications",
+      "allowed": true,
+      "reason_code": "ALLOWED",
+      "reason": "push_notifications is allowed for this age group",
+      "min_age_required": 5,
+      "next_eligible_date": null
+    }
+  ],
+  "summary": {
+    "total_features_checked": 4,
+    "allowed": 1,
+    "restricted": 3
+  },
+  "upcoming_unlocks": [
+    {
+      "feature": "voice_recording",
+      "feature_display_name": "Voice Recording",
+      "unlocks_at_age": 8,
+      "years_until_unlock": 1,
+      "unlock_date": "2026-06-12"
+    },
+    {
+      "feature": "image_upload",
+      "feature_display_name": "Image Upload",
+      "unlocks_at_age": 8,
+      "years_until_unlock": 1,
+      "unlock_date": "2026-06-12"
+    }
+  ],
+  "disclaimer": "This response provides general guidance only and does not constitute legal advice."
+}
 ```
 
 ## Error Responses (422)
