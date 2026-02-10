@@ -61,13 +61,13 @@ https://age-gating-api.p.rapidapi.com
 
 ## Endpoints Overview
 
-- **POST** /age-gate/check
+- **POST** `/age-gate/check`
     - Checks min age requirement for single feature.
-- **POST** /age-gate/check-bulk
+- **POST** `/age-gate/check-bulk`
     - Checks min age requirement for multiple features.
-- **GET** /age-gate/regions
+- **GET** `/age-gate/regions`
     - Lists all supported regions (and additional info for each)
-- **GET** /age-gate/features
+- **GET** `/age-gate/features`
     - List all available features with descriptions and age requirements by region.
 
 Determines whether a user meets a minimum age requirement.
@@ -302,7 +302,33 @@ response = requests.post(url, json=payload, headers=headers)
 print(response.json())
 
 ```
+## Caching
 
+The API implements intelligent caching to improve performance:
+
+### Age Check Endpoints (`/age-gate/check`, `/age-gate/check-bulk`)
+
+- **Cache Duration**: Until the user's next birthday (max 1 year)
+- **Cache-Control**: `private, max-age={seconds_until_birthday}`
+- **Rationale**: Age eligibility doesn't change until birthday, so results are safe to cache
+
+### Reference Endpoints (`/age-gate/features`, `/age-gate/regions`)
+
+- **Cache Duration**: 7 days
+- **Cache-Control**: `public, max-age=604800`
+- **Rationale**: Static reference data changes infrequently
+
+### Benefits
+
+- Reduced API calls and costs
+- Faster response times for repeat queries
+- Lower server load
+- Better user experience
+
+### Example Response Headers
+```
+Cache-Control: private, max-age=15552000
+```
 
 ## Rate Limiting
 

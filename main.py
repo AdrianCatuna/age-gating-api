@@ -1,5 +1,5 @@
 from fastapi import FastAPI, HTTPException, Request
-from fastapi.responses import JSONResponse
+from fastapi.responses import JSONResponse, Response
 from pydantic import BaseModel, Field, model_validator
 from typing import Optional
 from datetime import date
@@ -575,7 +575,7 @@ def health_check():
 
 @app.post("/age-gate/check", response_model=AgeGateResponse)
 @limiter.limit("40/minute")
-def age_gate_check(payload: AgeGateRequest, request: Request):
+def age_gate_check(payload: AgeGateRequest, request: Request, response: Response):
     # Determine age and DOB
     if payload.child_dob:
         age = calculate_age(payload.child_dob)
@@ -616,9 +616,16 @@ def age_gate_check(payload: AgeGateRequest, request: Request):
     
     # Get regulation reference
     regulation_reference = get_regulation_reference(region)
+    
+    # Set cache headers - cache until next birthday
+    today = date.today()
+    next_birthday = dob.replace(year=today.year + 1 if (dob.month, dob.day) <= (today.month, today.day) else today.year)
+    days_until_birthday = (next_birthday - today).days
+    cache_seconds = min(days_until_birthday * 86400, 31536000)  # Max 1 year
+    response.headers["Cache-Control"] = f"private, max-age={cache_seconds}"
 
     # Prepare response
-    response = AgeGateResponse(
+    age_gate_response = AgeGateResponse(
         allowed=allowed,
         reason_code="AGE_RESTRICTED" if not allowed else "ALLOWED",
         reason=(
@@ -637,12 +644,12 @@ def age_gate_check(payload: AgeGateRequest, request: Request):
         disclaimer="This response provides general guidance only and does not constitute legal advice."
     )
 
-    return response
+    return age_gate_response
 
 @app.post("/age-gate/check-bulk", response_model=BulkAgeGateResponse)
-@limiter.limit("40/minute")  
-def age_gate_check_bulk(payload: BulkAgeGateRequest, request: Request):
-    # Determine age and DOB (same logic as single check)
+@limiter.limit("40/minute")
+def age_gate_check_bulk(payload: BulkAgeGateRequest, request: Request, response: Response):
+    # Determine age and DOB
     if payload.child_dob:
         age = calculate_age(payload.child_dob)
         dob = payload.child_dob
@@ -671,6 +678,13 @@ def age_gate_check_bulk(payload: BulkAgeGateRequest, request: Request):
     
     # Get upcoming unlocks
     upcoming_unlocks = get_upcoming_unlocks(age, region, dob)
+    
+    # Set cache headers - cache until next birthday
+    today = date.today()
+    next_birthday = dob.replace(year=today.year + 1 if (dob.month, dob.day) <= (today.month, today.day) else today.year)
+    days_until_birthday = (next_birthday - today).days
+    cache_seconds = min(days_until_birthday * 86400, 31536000)  # Max 1 year
+    response.headers["Cache-Control"] = f"private, max-age={cache_seconds}"
 
     # Check each feature
     results = []
@@ -681,7 +695,6 @@ def age_gate_check_bulk(payload: BulkAgeGateRequest, request: Request):
         min_age = region_rules.get(feature)
         
         if min_age is None:
-            # Skip unsupported features or add to errors
             continue
         
         allowed = age >= min_age
@@ -708,7 +721,7 @@ def age_gate_check_bulk(payload: BulkAgeGateRequest, request: Request):
         ))
 
     # Prepare response
-    response = BulkAgeGateResponse(
+    bulk_response = BulkAgeGateResponse(
         age=age,
         age_band=get_age_band(age),
         region=region,
@@ -723,13 +736,16 @@ def age_gate_check_bulk(payload: BulkAgeGateRequest, request: Request):
         disclaimer="This response provides general guidance only and does not constitute legal advice."
     )
 
-    return response
+    return bulk_response
  
 @app.get("/age-gate/regions", response_model=RegionsResponse)
 def list_regions():
     """
     List all supported regions with their privacy regulations and age thresholds.
     """
+    # Static data - cache for 7 days
+    response.headers["Cache-Control"] = "public, max-age=604800"
+    
     regions_list = []
     
     for code, metadata in REGION_METADATA.items():
@@ -759,6 +775,9 @@ def list_features():
     """
     List all available features with descriptions and age requirements by region.
     """
+    # Static data - cache for 7 days
+    response.headers["Cache-Control"] = "public, max-age=604800"
+    
     features_list = []
     categories_set = set()
     
