@@ -761,7 +761,7 @@ def list_regions(response: Response):
     # Sort by region code
     regions_list.sort(key=lambda x: x.code)
     
-    response = RegionsResponse(
+    regions_response = RegionsResponse(
         total_regions=len(regions_list),
         regions=regions_list,
         default_rules=DEFAULT_RULES,
@@ -806,7 +806,7 @@ def list_features(response: Response):
     # Sort by category, then by name
     features_list.sort(key=lambda x: (x.category, x.name))
     
-    response = FeaturesResponse(
+    features_response = FeaturesResponse(
         total_features=len(features_list),
         features=features_list,
         categories=sorted(list(categories_set)),
